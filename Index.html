@@ -56,7 +56,7 @@ import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase
 import {getAuth,GoogleAuthProvider,signInWithPopup,onAuthStateChanged,signOut} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {getFirestore,doc,setDoc,collection,getDocs} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 // 1) Pega aquí la config de tu proyecto Firebase (Configuración del proyecto > Tus apps > Web)
-const firebaseConfig={apiKey:"TU_API_KEY",authDomain:"TU_PROYECTO.firebaseapp.com",projectId:"TU_PROYECTO",appId:"TU_APP_ID"};
+const firebaseConfig={apiKey:"AIzaSyDPxyfB8OueDQXpW6sURVTnxIQo8w_wVhQ",authDomain:"nominacal.firebaseapp.com",projectId:"nominacal",appId:"1:1032087014292:web:95f4572d795068453c1d81"};
 const fb=initializeApp(firebaseConfig),auth=getAuth(fb),db=getFirestore(fb);
 const C=[["diurna","e","Extra diurna",25],["nocturna","e","Extra nocturna",75],["diurnaFestiva","e","Extra diurna dom/fest",115],["nocturnaFestiva","e","Extra nocturna dom/fest",165],["recNocturno","r","Recargo nocturno",35],["recDomDiurno","r","Recargo dom/fest diurno",90],["recDomNocturno","r","Recargo dom/fest nocturno",125]];
 const $=s=>document.querySelector(s),p2=n=>String(n).padStart(2,"0");
