@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Calculadora de nómina</title>
+<style>
+:root{--bg:#0A1929;--pn:#10263B;--bd:#1E3A52;--in:#0B1E2D;--ac:#2DD9C4;--br:#D9A054;--gl:#4AE8B8;--tx:#EAF2F5;--mu:#7E97A8;--sel:#123049;--rd:#E36767;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]){--bg:#EEF3F6;--pn:#fff;--bd:#CBD8E0;--in:#F4F8FA;--ac:#0E8F80;--br:#9A6A1E;--gl:#0B7A6C;--tx:#10222F;--mu:#5B7282;--sel:#DDF1EE;--rd:#B33A3A}}
+:root[data-theme="dark"]{--bg:#0A1929}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--tx);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;padding:20px 14px 40px}
+.w{max-width:440px;margin:0 auto}.mono{font-family:ui-monospace,Menlo,Consolas,monospace}
+h1{font-size:17px;margin:0}.sub{color:var(--mu);font-size:12px;margin:2px 0 18px}
+.card{background:var(--pn);border:1px solid var(--bd);border-radius:16px;padding:16px;margin-bottom:14px}
+.eb{color:var(--br);letter-spacing:.12em;font-size:11px;font-weight:700;text-transform:uppercase}
+.tot{font-size:clamp(26px,8vw,34px);font-weight:700;color:var(--gl);margin:6px 0 2px;font-variant-numeric:tabular-nums}
+.mu{color:var(--mu);font-size:12px}.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:12px;padding-top:10px;border-top:1px dashed var(--bd);font-size:11px}
+.g3 b{display:block;font-weight:400;color:var(--tx);margin-top:2px}
+summary{cursor:pointer;color:var(--ac);font-size:12px;margin-top:10px}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 0;font-size:12px}
+.row+.row{border-top:1px dashed var(--bd)}
+input{background:var(--in);border:1px solid var(--bd);color:var(--tx);border-radius:8px;padding:6px 8px;font:inherit;font-size:14px;width:84px;text-align:right}
+input.f{width:100%;text-align:left;font-size:16px;padding:9px 10px}input:focus{outline:2px solid var(--ac);outline-offset:1px}
+input[type=checkbox]{width:auto}
+.nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+button{font:inherit;cursor:pointer;color:var(--tx)}button:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+.nb{background:none;border:0;color:var(--mu);font-size:22px;padding:2px 10px}
+.gr{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}.wd{text-align:center;font-size:10px;color:var(--mu);font-weight:600}
+.d{aspect-ratio:1;border-radius:9px;border:1px solid var(--bd);background:var(--in);font-size:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0}
+.d small{font-size:9px;color:var(--ac)}.d.h{border-color:var(--ac)}.d.t{box-shadow:inset 0 0 0 1px var(--br)}.d.s{background:var(--sel);border-color:var(--ac)}
+.pn{margin-top:14px;padding-top:14px;border-top:1px dashed var(--bd)}
+.bt{background:var(--ac);color:#06202A;border:0;border-radius:10px;padding:10px;font-weight:600;font-size:13px;flex:1}
+.b2{background:none;border:1px solid var(--bd);border-radius:10px;padding:10px 14px;color:var(--mu)}
+.fl{display:flex;gap:8px;margin-top:12px}label.l{display:block;font-size:13px;margin:10px 0 4px}
+.note{font-size:11px;line-height:1.5;color:var(--mu)}
+</style></head><body><div class="w" id="login" hidden><h1>Calculadora de nómina</h1><p class="sub">Inicia sesión para guardar tu historial en la nube</p><button class="bt" id="gb" style="width:100%">Continuar con Google</button><p class="note" id="lerr" style="margin-top:10px"></p></div>
+<div class="w" id="app" hidden>
+<h1>Calculadora de nómina</h1><p class="sub">Historial por día · Colombia 2026</p>
+<p class="note" style="margin:-10px 0 14px"><span id="un"></span> · <button class="b2" id="out" style="padding:2px 8px;font-size:11px">Salir</button></p>
+<div class="card" id="sum"></div>
+<div class="card"><div class="nav"><button class="nb" id="pv" aria-label="Mes anterior">‹</button><b id="mt" style="text-transform:capitalize"></b><button class="nb" id="nx" aria-label="Mes siguiente">›</button></div>
+<div class="gr" id="wd"></div><div class="gr" id="cal" style="margin-top:5px"></div><div id="dp"></div></div>
+<details class="card"><summary class="eb" style="margin:0">Configuración</summary>
+<label class="l">Salario mensual (sin auxilio)</label><input class="f mono" id="base" type="number" inputmode="decimal" placeholder="0">
+<p class="mu" id="vh"></p>
+<label class="l">Horas mensuales (divisor legal)</label><input class="f mono" id="div" type="number" inputmode="decimal">
+<p class="note">Jornada de 42 h/semana desde el 15 jul. 2026 → 210 h/mes.</p>
+<label class="l">Día de corte de horas extra</label><input class="f mono" id="cut" type="number" inputmode="numeric" min="1" max="28">
+<p class="note">El periodo empieza ese día y termina el día anterior del mes siguiente (ej.: 11 → del 11 al 10). Con 1 se usa el mes calendario.</p>
+<label class="l"><input type="checkbox" id="aux"> Incluir auxilio de transporte</label><input class="f mono" id="auxv" type="number" inputmode="decimal">
+<p class="eb" style="margin:14px 0 4px;font-size:10px">Porcentajes</p><div id="pc"></div>
+<button class="b2" id="rs" style="margin-top:10px;font-size:12px">Restablecer porcentajes legales</button></details>
+<p class="note">Tus datos se guardan en tu cuenta (iniciaste con Google) y solo tú puedes verlos. Porcentajes vigentes en Colombia, 2.º semestre de 2026 (CST, Ley 2101 de 2021 y Ley 2466 de 2025), editables. No incluye descuentos de ley (salud, pensión) ni retención en la fuente: es una estimación, no un desprendible oficial.</p>
+</div>
+<script type="module">
+import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {getAuth,GoogleAuthProvider,signInWithPopup,onAuthStateChanged,signOut} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {getFirestore,doc,setDoc,collection,getDocs} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+// 1) Pega aquí la config de tu proyecto Firebase (Configuración del proyecto > Tus apps > Web)
+const firebaseConfig={apiKey:"TU_API_KEY",authDomain:"TU_PROYECTO.firebaseapp.com",projectId:"TU_PROYECTO",appId:"TU_APP_ID"};
+const fb=initializeApp(firebaseConfig),auth=getAuth(fb),db=getFirestore(fb);
+const C=[["diurna","e","Extra diurna",25],["nocturna","e","Extra nocturna",75],["diurnaFestiva","e","Extra diurna dom/fest",115],["nocturnaFestiva","e","Extra nocturna dom/fest",165],["recNocturno","r","Recargo nocturno",35],["recDomDiurno","r","Recargo dom/fest diurno",90],["recDomNocturno","r","Recargo dom/fest nocturno",125]];
+const $=s=>document.querySelector(s),p2=n=>String(n).padStart(2,"0");
+const fmt=v=>new Intl.NumberFormat("es-CO",{style:"currency",currency:"COP",maximumFractionDigits:0}).format(isFinite(v)?v:0);
+const num=v=>{const n=parseFloat(v);return isNaN(n)?0:n};
+const store={};let uid=null;
+const ld=(k,d)=>store[k]!==undefined?store[k]:d;
+const sv=(k,v)=>{store[k]=v;if(uid)setDoc(doc(db,"users",uid,"data",k.replace(":","-")),{json:JSON.stringify(v)}).catch(()=>alert("No se pudo sincronizar. Revisa tu conexión."));return true};
+const defp=()=>Object.fromEntries(C.map(c=>[c[0],String(c[3])]));
+let cfg;
+const now=new Date();let sel=null,vy,vm;
+const cut=()=>Math.min(28,Math.max(1,Math.floor(num(cfg.cut))||1));
+const home=()=>{vy=now.getFullYear();vm=now.getMonth();if(now.getDate()<cut()){vm--;if(vm<0){vm=11;vy--}}};
+const ds=d=>d.getFullYear()+"-"+p2(d.getMonth()+1)+"-"+p2(d.getDate());
+const mkd=d=>"month:"+d.getFullYear()+"-"+p2(d.getMonth()+1);
+const period=()=>{const a=new Date(vy,vm,cut()),b=new Date(vy,vm+1,cut()),L=[];for(let d=new Date(a);d<b;d.setDate(d.getDate()+1))L.push(new Date(d));return L};
+const getE=d=>ld(mkd(d),{})[ds(d)];
+const fd=(d,o)=>d.toLocaleDateString("es-CO",o);
+const plabel=()=>{const L=period();return cut()==1?fd(L[0],{month:"long",year:"numeric"}):fd(L[0],{day:"numeric",month:"short"})+" – "+fd(L[L.length-1],{day:"numeric",month:"short",year:"numeric"})};
+const vh=()=>num(cfg.base)/(num(cfg.div)||1);
+const val=(c,h)=>{const p=num(cfg.pct[c[0]]);return c[1]=="e"?h*vh()*(1+p/100):h*vh()*p/100};
+function renderSum(){const H={};let e=0,r=0,t=0,rows="";
+C.forEach(c=>H[c[0]]=0);period().forEach(x=>{const d=getE(x);if(d)C.forEach(c=>H[c[0]]+=d[c[0]]||0)});
+C.forEach(c=>{const v=val(c,H[c[0]]);t+=H[c[0]];c[1]=="e"?e+=v:r+=v;rows+='<div class="row"><span>'+c[2]+'</span><span class="mono">'+H[c[0]]+" h · "+fmt(v)+"</span></div>"});
+const b=num(cfg.base),tot=b+e+r+(cfg.aux?num(cfg.auxv):0);
+$("#sum").innerHTML='<div class="eb">Salario bruto — '+plabel()+'</div><div class="tot mono">'+fmt(tot)+'</div><div class="mu mono">'+t+' h extra registradas este mes</div><div class="g3 mono"><div class="mu">Base<b>'+fmt(b)+'</b></div><div class="mu">Extras<b>'+fmt(e)+'</b></div><div class="mu">Recargos<b>'+fmt(r)+"</b></div></div><details><summary>Ver detalle por categoría</summary>"+rows+"</details>";
+$("#vh").textContent="Valor hora ordinaria: "+fmt(vh())}
+function renderCal(){const L=period(),f=(L[0].getDay()+6)%7,tk=ds(now);
+$("#mt").textContent=plabel();
+let h="";for(let i=0;i<f;i++)h+="<div></div>";
+L.forEach(x=>{const k=ds(x),e=getE(x),hs=e?C.reduce((s,c)=>s+(e[c[0]]||0),0):0;
+h+='<button class="d mono'+(e?" h":"")+(k==tk?" t":"")+(sel==k?" s":"")+'" data-d="'+k+'">'+x.getDate()+(e?"<small>"+hs+"h</small>":"")+"</button>"});
+$("#cal").innerHTML=h;
+document.querySelectorAll(".d").forEach(b=>b.onclick=()=>{sel=sel==b.dataset.d?null:b.dataset.d;renderCal();renderDay()})}
+function dayTotal(){return C.reduce((s,c)=>s+val(c,num(($("#i_"+c[0])||{}).value)),0)}
+function renderDay(){const box=$("#dp");if(!sel){box.innerHTML="";return}
+const sd0=new Date(sel+"T12:00:00"),e=getE(sd0)||{};let h='<div class="pn"><b style="text-transform:capitalize">'+fd(sd0,{weekday:"long",day:"numeric",month:"long"})+"</b>";
+C.forEach(c=>h+='<div class="row"><span>'+c[2]+'</span><span><input class="mono" id="i_'+c[0]+'" type="number" inputmode="decimal" step="any" min="0" placeholder="0" value="'+(e[c[0]]||"")+'"> h</span></div>');
+h+='<p class="mono" style="text-align:right;color:var(--ac);font-size:12px" id="dt"></p><div class="fl"><button class="bt" id="sd">Guardar día</button><button class="b2" id="cd" aria-label="Borrar día">Borrar</button></div></div>';
+box.innerHTML=h;const upd=()=>$("#dt").textContent="Este día: "+fmt(dayTotal());upd();
+C.forEach(c=>$("#i_"+c[0]).oninput=upd);
+$("#sd").onclick=()=>{const o={};let any=false;C.forEach(c=>{const v=num($("#i_"+c[0]).value);o[c[0]]=v;if(v>0)any=true});save(any?o:null)};
+$("#cd").onclick=()=>save(null)}
+function save(o){const sd0=new Date(sel+"T12:00:00"),k=mkd(sd0),m=ld(k,{});if(o)m[sel]=o;else delete m[sel];
+if(!sv(k,m)){alert("No se pudo guardar en este navegador.");return}
+sel=null;renderCal();renderDay();renderSum()}
+function mv(k){sel=null;vm+=k;if(vm<0){vm=11;vy--}if(vm>11){vm=0;vy++}renderCal();renderDay();renderSum()}
+$("#pv").onclick=()=>mv(-1);$("#nx").onclick=()=>mv(1);
+$("#wd").innerHTML=["Lun","Mar","Mié","Jue","Vie","Sáb","Dom"].map(w=>'<div class="wd">'+w+"</div>").join("");
+function cfgChange(){sv("config",cfg);renderSum();if(sel)$("#dt").textContent="Este día: "+fmt(dayTotal())}
+function start(){cfg=Object.assign({base:"",div:"210",cut:"1",aux:false,auxv:"249095"},ld("config",{}));cfg.pct=Object.assign(defp(),cfg.pct||{});home();
+$("#base").value=cfg.base;$("#div").value=cfg.div;$("#cut").value=cfg.cut;$("#aux").checked=cfg.aux;$("#auxv").value=cfg.auxv;
+$("#cut").oninput=e=>{cfg.cut=e.target.value;sv("config",cfg);sel=null;home();renderCal();renderDay();renderSum()};
+$("#base").oninput=e=>{cfg.base=e.target.value;cfgChange()};$("#div").oninput=e=>{cfg.div=e.target.value;cfgChange()};
+$("#aux").onchange=e=>{cfg.aux=e.target.checked;cfgChange()};$("#auxv").oninput=e=>{cfg.auxv=e.target.value;cfgChange()};
+function renderPct(){$("#pc").innerHTML=C.map(c=>'<div class="row"><span>'+c[2]+'</span><span><input class="mono" data-k="'+c[0]+'" type="number" inputmode="decimal" step="any" value="'+cfg.pct[c[0]]+'"> %</span></div>').join("");
+document.querySelectorAll("#pc input").forEach(i=>i.oninput=e=>{cfg.pct[e.target.dataset.k]=e.target.value;cfgChange()})}
+$("#rs").onclick=()=>{cfg.pct=defp();renderPct();cfgChange()};
+renderPct();renderCal();renderSum()}
+let started=false;
+$("#gb").onclick=()=>signInWithPopup(auth,new GoogleAuthProvider()).catch(e=>{$("#lerr").textContent="No se pudo iniciar sesión ("+(e.code||"error")+")."});
+$("#out").onclick=()=>signOut(auth).then(()=>location.reload());
+onAuthStateChanged(auth,async u=>{
+if(!u){$("#app").hidden=true;$("#login").hidden=false;return}
+if(started)return;started=true;uid=u.uid;
+try{const snap=await getDocs(collection(db,"users",uid,"data"));
+snap.forEach(d=>{try{store[d.id=="config"?"config":d.id.replace("month-","month:")]=JSON.parse(d.data().json)}catch(e){}})}
+catch(e){alert("No se pudieron cargar tus datos. Revisa las reglas de Firestore y tu conexión.")}
+$("#un").textContent=u.displayName||u.email||"";$("#login").hidden=true;$("#app").hidden=false;start()});
+</script></body></html>
